@@ -1,15 +1,17 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"strconv"
 )
 
 type Config struct {
 	DBPassword, DBName, DBHost, DBUser string
+	DBPort                             int
 }
 
-func Getenv(val, def string) string {
+func getenv(val, def string) string {
 	s := os.Getenv(val)
 	if s == "" {
 		return def
@@ -17,19 +19,25 @@ func Getenv(val, def string) string {
 	return s
 }
 
-func GetenvInt(val string, def int) int {
+func getenvInt(val string, def int) (int, error) {
 	s := os.Getenv(val)
 	if s == "" {
-		return def
+		return def, nil
 	}
-	return strconv.Atoi()
+	result, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, errors.Join(errors.New("config .getenvInt(): "), err)
+	}
+	return result, nil
 }
 
-func NewConfig() Config {
+func NewConfig() (Config, error) {
+	port, err := getenvInt("DB_PORT", 5432)
 	return Config{
-		DBPassword: Getenv("DB_PASSWORD", "password"),
-		DBName:     Getenv("DB_NAME", "postgres"),
-		DBHost:     Getenv("DB_HOST", "localhost"),
-		DBUser:     Getenv("DB_USER", "postgres"),
-	}
+		DBPassword: getenv("DB_PASSWORD", "password"),
+		DBName:     getenv("DB_NAME", "postgres"),
+		DBHost:     getenv("DB_HOST", "localhost"),
+		DBUser:     getenv("DB_USER", "postgres"),
+		DBPort:     port,
+	}, err
 }
