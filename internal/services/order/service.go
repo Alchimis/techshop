@@ -9,6 +9,7 @@ import (
 
 type Repository interface {
 	GetOrdersById(ctx context.Context, ids []int) ([]models.Order, error)
+	GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]models.RackWithProducts, error)
 }
 
 type service struct {
@@ -17,6 +18,7 @@ type service struct {
 
 type Service interface {
 	GetOrdersById(ctx context.Context, ids []int) ([]models.Order, error)
+	GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]models.RackWithProducts, error)
 }
 
 func NewService(repo Repository) Service {
@@ -27,4 +29,8 @@ func NewService(repo Repository) Service {
 
 func (s *service) GetOrdersById(ctx context.Context, ids []int) ([]models.Order, error) {
 	return []models.Order{}, errors.ErrNotImplemented
+}
+
+func (s *service) GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]models.RackWithProducts, error) {
+	return s.repo.GetOrdersByIdSortByRacks(ctx, ids)
 }

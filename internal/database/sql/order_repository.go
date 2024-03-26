@@ -20,3 +20,7 @@ func NewRepository(conn *pgxpool.Pool) order.Repository {
 func (r orderRepository) GetOrdersById(ctx context.Context, ids []int) ([]models.Order, error) {
 	return []models.Order{}, errors.ErrNotImplemented
 }
+
+func (r orderRepository) GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]models.RackWithProducts, error) {
+	return []models.RackWithProducts{}, errors.ErrNotImplemented
+}

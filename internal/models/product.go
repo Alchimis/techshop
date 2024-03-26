@@ -2,7 +2,8 @@ package models
 
 type Product struct {
 	Id              int
+	MainRackId      Rack
 	Title           string
-	MainRackId      int
 	ProductCategory string
+	AdditionalRacks []Rack
 }
