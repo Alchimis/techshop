@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/Alchimis/techshop/internal/config"
@@ -12,10 +11,7 @@ import (
 )
 
 func New() (order.Service, error) {
-	config, err := config.NewConfig()
-	if err != nil {
-		return nil, errors.Join(errors.New("app .New(): "), err)
-	}
+	config := config.NewConfig()
 	connString := fmt.Sprintf("host=%s port=5432 user=%s password=%s dbname=%s sslmode=disable", config.DBHost, config.DBUser, config.DBPassword, config.DBName)
 	conn, err := pgxpool.New(context.Background(), connString)
 	if err != nil {

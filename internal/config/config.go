@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"os"
 	"strconv"
 )
@@ -19,25 +18,24 @@ func getenv(val, def string) string {
 	return s
 }
 
-func getenvInt(val string, def int) (int, error) {
+func getenvInt(val string, def int) int {
 	s := os.Getenv(val)
 	if s == "" {
-		return def, nil
+		return def
 	}
 	result, err := strconv.Atoi(s)
 	if err != nil {
-		return 0, errors.Join(errors.New("config .getenvInt(): "), err)
+		return def
 	}
-	return result, nil
+	return result
 }
 
-func NewConfig() (Config, error) {
-	port, err := getenvInt("DB_PORT", 5432)
+func NewConfig() Config {
 	return Config{
 		DBPassword: getenv("DB_PASSWORD", "password"),
 		DBName:     getenv("DB_NAME", "postgres"),
 		DBHost:     getenv("DB_HOST", "localhost"),
 		DBUser:     getenv("DB_USER", "postgres"),
-		DBPort:     port,
-	}, err
+		DBPort:     getenvInt("DB_PORT", 5432),
+	}
 }
