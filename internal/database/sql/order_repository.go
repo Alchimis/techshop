@@ -80,5 +80,8 @@ GROUP BY p.main_rack_id, p.main_rack_name;
 		}
 		racks = append(racks, rack)
 	}
+	if len(racks) == 0 {
+		return racks, errors.ErrNotFound
+	}
 	return racks, nil
 }

@@ -37,10 +37,12 @@ func main() {
 		handleError(err)
 		return
 	}
-	orders, err := service.GetOrdersById(context.Background(), orderIds)
+	orders, err := service.GetOrdersByIdSortByRacks(context.Background(), orderIds)
 	if err != nil {
 		handleError(err)
 		return
 	}
-	fmt.Println(orders)
+	for _, o := range orders {
+		fmt.Println(o)
+	}
 }
