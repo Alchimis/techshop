@@ -26,7 +26,7 @@ func handleError(err error) {
 	fmt.Println(err)
 }
 
-func main() {
+func getOrders() {
 	orderIds, err := stringsToInts(os.Args)
 	if err != nil {
 		handleError(err)
@@ -45,4 +45,8 @@ func main() {
 	for _, o := range orders {
 		fmt.Println(o)
 	}
+}
+
+func main() {
+	getOrders()
 }
