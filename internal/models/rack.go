@@ -10,6 +10,20 @@ type Rack struct {
 	Title string
 }
 
+type RackHasProduct struct {
+	RackId    int
+	ProductId int
+}
+
+type MainRack struct {
+	Id       int
+	Title    string
+	Products []struct {
+		Id                    int
+		AdditionalRacksTitles []string
+	}
+}
+
 type RackWithProducts struct {
 	Id       int
 	Name     string

@@ -7,6 +7,7 @@ import (
 	"github.com/Alchimis/techshop/internal/errors"
 	"github.com/Alchimis/techshop/internal/models"
 	"github.com/Alchimis/techshop/internal/services/product"
+	"github.com/Alchimis/techshop/internal/services/rack"
 )
 
 type Repository interface {
@@ -18,6 +19,7 @@ type Repository interface {
 type service struct {
 	repo           Repository
 	productService product.Service
+	rackService    rack.Service
 }
 
 type Service interface {
@@ -25,10 +27,11 @@ type Service interface {
 	GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]models.RackWithProducts, error)
 }
 
-func NewService(repo Repository, productService product.Service) Service {
+func NewService(repo Repository, productService product.Service, rackService rack.Service) Service {
 	return &service{
 		repo:           repo,
 		productService: productService,
+		rackService:    rackService,
 	}
 }
 

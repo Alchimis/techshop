@@ -8,6 +8,7 @@ import (
 	"github.com/Alchimis/techshop/internal/database/sql"
 	"github.com/Alchimis/techshop/internal/services/order"
 	"github.com/Alchimis/techshop/internal/services/product"
+	"github.com/Alchimis/techshop/internal/services/rack"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -21,5 +22,7 @@ func New() (order.Service, error) {
 	orderRepo := sql.NewRepository(conn)
 	productRepo := sql.NewProductRepository(conn)
 	productService := product.NewService(productRepo)
-	return order.NewService(orderRepo, productService), nil
+	rackRepo := sql.NerRackRepository(conn)
+	rackService := rack.NewService(rackRepo)
+	return order.NewService(orderRepo, productService, rackService), nil
 }

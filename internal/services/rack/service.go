@@ -3,6 +3,7 @@ package rack
 import (
 	"context"
 
+	domainErrors "github.com/Alchimis/techshop/internal/errors"
 	"github.com/Alchimis/techshop/internal/models"
 )
 
@@ -12,6 +13,7 @@ type Repository interface {
 
 type Service interface {
 	GetRacksByIds(ctx context.Context, ids []int) ([]models.Rack, error)
+	GetMainRacksByProductIds(ctx context.Context, ids []int) ([]models.MainRack, error)
 }
 
 type service struct {
@@ -26,4 +28,8 @@ func NewService(repo Repository) Service {
 
 func (s *service) GetRacksByIds(ctx context.Context, ids []int) ([]models.Rack, error) {
 	return s.repo.GetRacksByIds(ctx, ids)
+}
+
+func (s *service) GetMainRacksByProductIds(ctx context.Context, ids []int) ([]models.MainRack, error) {
+	return []models.MainRack{}, domainErrors.ErrNotImplemented
 }
