@@ -7,3 +7,9 @@ type Order struct {
 		Quantity int
 	}
 }
+
+type OrderHasProduct struct {
+	OrderId         int
+	ProductId       int
+	ProductQuantity int
+}

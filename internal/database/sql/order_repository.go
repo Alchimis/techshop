@@ -85,3 +85,25 @@ GROUP BY p.main_rack_id, p.main_rack_name;
 	}
 	return racks, nil
 }
+
+func (r orderRepository) GetOrderHasProductByIds(ctx context.Context, ids []int) ([]models.OrderHasProduct, error) {
+	query := `
+	SELECT order_id, product_id, quantity FROM client_order
+	WHERE order_id = any ($1)
+	ORDER BY order_id, product_id;
+	`
+	rows, err := r.conn.Query(ctx, query, ids)
+	defer rows.Close()
+	if err != nil {
+		return []models.OrderHasProduct{}, err
+	}
+	orders := []models.OrderHasProduct{}
+	for rows.Next() {
+		var order models.OrderHasProduct
+		if err := rows.Scan(&order.OrderId, &order.ProductId, &order.ProductQuantity); err != nil {
+			return []models.OrderHasProduct{}, err
+		}
+		orders = append(orders, order)
+	}
+	return orders, nil
+}

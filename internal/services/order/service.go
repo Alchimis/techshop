@@ -10,6 +10,7 @@ import (
 type Repository interface {
 	GetOrdersById(ctx context.Context, ids []int) ([]models.Order, error)
 	GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]models.RackWithProducts, error)
+	GetOrderHasProductByIds(ctx context.Context, ids []int) ([]models.OrderHasProduct, error)
 }
 
 type service struct {
