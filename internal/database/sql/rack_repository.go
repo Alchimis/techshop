@@ -36,3 +36,24 @@ func (r rackRepository) GetRacksByIds(ctx context.Context, ids []int) ([]models.
 	}
 	return racks, nil
 }
+
+func (r rackRepository) GetRacksHasProductsByProductIds(ctx context.Context, productIds []int) ([]models.RackHasProduct, error) {
+	query := `
+	SELECT rack_id, product_id, is_main FROM rack_has_product
+	WHERE product_id = any($1)
+	`
+	rows, err := r.conn.Query(ctx, query, productIds)
+	defer rows.Close()
+	if err != nil {
+		return []models.RackHasProduct{}, err
+	}
+	var rackHasProducts []models.RackHasProduct
+	for rows.Next() {
+		var rack models.RackHasProduct
+		if err := rows.Scan(&rack.RackId, &rack.ProductId, &rack.IsMain); err != nil {
+			return []models.RackHasProduct{}, err
+		}
+		rackHasProducts = append(rackHasProducts, rack)
+	}
+	return rackHasProducts, nil
+}

@@ -9,6 +9,7 @@ import (
 
 type Repository interface {
 	GetRacksByIds(ctx context.Context, ids []int) ([]models.Rack, error)
+	GetRacksHasProductsByProductIds(ctx context.Context, productIds []int) ([]models.RackHasProduct, error)
 }
 
 type Service interface {

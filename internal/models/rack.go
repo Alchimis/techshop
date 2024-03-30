@@ -13,6 +13,7 @@ type Rack struct {
 type RackHasProduct struct {
 	RackId    int
 	ProductId int
+	IsMain    bool
 }
 
 type MainRack struct {
