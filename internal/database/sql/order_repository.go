@@ -88,7 +88,7 @@ GROUP BY p.main_rack_id, p.main_rack_name;
 
 func (r orderRepository) GetOrderHasProductByIds(ctx context.Context, ids []int) ([]models.OrderHasProduct, error) {
 	query := `
-	SELECT order_id, product_id, quantity FROM client_order
+	SELECT order_id, product_id, quantity FROM order_has_product
 	WHERE order_id = any ($1)
 	ORDER BY order_id, product_id;
 	`
