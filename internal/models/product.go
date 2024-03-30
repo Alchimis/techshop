@@ -7,3 +7,8 @@ type Product struct {
 	ProductCategory string
 	AdditionalRacks []Rack
 }
+
+type SimpleProduct struct {
+	Id    int
+	Title string
+}
