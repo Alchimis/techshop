@@ -28,6 +28,7 @@ type service struct {
 type Service interface {
 	GetOrdersById(ctx context.Context, ids []int) ([]models.Order, error)
 	GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]models.RackWithProducts, error)
+	GetOrdersByIdsSortedByMainRacks(ctx context.Context, ind []int) ([]models.RackWithProducts, error)
 }
 
 func NewService(repo Repository, productService product.Service, rackService rack.Service) Service {
@@ -131,4 +132,8 @@ func (s *service) GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]mo
 		racksWithProducts = append(racksWithProducts, racksWithProduct)
 	}
 	return racksWithProducts, nil //s.repo.GetOrdersByIdSortByRacks(ctx, ids)
+}
+
+func (s *service) GetOrdersByIdsSortedByMainRacks(ctx context.Context, ind []int) ([]models.RackWithProducts, error) {
+	return []models.RackWithProducts{}, errors.ErrNotImplemented
 }

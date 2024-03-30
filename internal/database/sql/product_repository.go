@@ -3,6 +3,7 @@ package sql
 import (
 	"context"
 
+	domainErrors "github.com/Alchimis/techshop/internal/errors"
 	"github.com/Alchimis/techshop/internal/models"
 	"github.com/Alchimis/techshop/internal/services/product"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -36,4 +37,8 @@ func (r productRepository) GetProductsByIds(ctx context.Context, ids []int) ([]m
 		products = append(products, product)
 	}
 	return products, nil
+}
+
+func (r productRepository) GetProductsByOrderId(ctx context.Context, orderId int) ([]models.SimpleProduct, error) {
+	return []models.SimpleProduct{}, domainErrors.ErrNotImplemented
 }
