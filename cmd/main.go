@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/Alchimis/techshop/internal/app"
+	"github.com/Alchimis/techshop/internal/services/order"
 )
 
 func stringsToInts(strings []string) ([]int, error) {
@@ -26,13 +28,8 @@ func handleError(err error) {
 	fmt.Println(err)
 }
 
-func getOrders() {
+func getOrders(service order.Service) {
 	orderIds, err := stringsToInts(os.Args)
-	if err != nil {
-		handleError(err)
-		return
-	}
-	service, err := app.New()
 	if err != nil {
 		handleError(err)
 		return
@@ -48,5 +45,14 @@ func getOrders() {
 }
 
 func main() {
-	getOrders()
+	service, err := app.New()
+	if err != nil {
+		handleError(err)
+		return
+	}
+	startedAt := time.Now()
+	for i := 0; i < 10000; i++ {
+		getOrders(service)
+	}
+	fmt.Println(time.Since(startedAt))
 }

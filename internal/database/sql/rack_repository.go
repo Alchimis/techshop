@@ -3,8 +3,10 @@ package sql
 import (
 	"context"
 
+	domainErrors "github.com/Alchimis/techshop/internal/errors"
 	"github.com/Alchimis/techshop/internal/models"
 	"github.com/Alchimis/techshop/internal/services/rack"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -56,4 +58,20 @@ func (r rackRepository) GetRacksHasProductsByProductIds(ctx context.Context, pro
 		rackHasProducts = append(rackHasProducts, rack)
 	}
 	return rackHasProducts, nil
+}
+
+func (r rackRepository) GetRackById(ctx context.Context, id int) (models.Rack, error) {
+	query := `
+	SELECT id, name FROM rack
+	WHERE id=$1;
+	`
+	var rack models.Rack
+	err := r.conn.QueryRow(ctx, query, id).Scan(&rack.Id, &rack.Title)
+	if err != nil {
+		if err != pgx.ErrNoRows {
+			return models.Rack{}, domainErrors.ErrNotFound
+		}
+		return models.Rack{}, err
+	}
+	return rack, nil
 }

@@ -20,23 +20,34 @@ type MainRack struct {
 	Id       int
 	Title    string
 	Products []struct {
-		Id                    int
-		AdditionalRacksTitles []string
+		Id              int
+		AdditionalRacks []Rack
 	}
+}
+
+type ProductIn struct {
+	Id              int    `json:"product_id"`
+	OrderId         int    `json:"order_id"`
+	Quantity        int    `json:"order_quantity"`
+	Title           string `json:"product_title"`
+	AdditionalRacks []struct {
+		RackName *string `json:"rack_name"`
+		RackId   *int    `json:"rack_id"`
+	} `json:"additional_racks"`
 }
 
 type RackWithProducts struct {
 	Id       int
 	Name     string
+	Products []ProductIn
+}
+
+type RackWithProductAndAdditionalRacks struct {
+	Id       int
+	Name     string
 	Products []struct {
-		Id              int    `json:"product_id"`
-		OrderId         int    `json:"order_id"`
-		Quantity        int    `json:"order_quantity"`
-		Title           string `json:"product_title"`
-		AdditionalRacks []struct {
-			RackName *string `json:"rack_name"`
-			RackId   *int    `json:"rack_id"`
-		} `json:"additional_racks"`
+		ProductOrder
+		Additionalracks []Rack
 	}
 }
 
