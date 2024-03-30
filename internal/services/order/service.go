@@ -6,6 +6,7 @@ import (
 
 	"github.com/Alchimis/techshop/internal/errors"
 	"github.com/Alchimis/techshop/internal/models"
+	"github.com/Alchimis/techshop/internal/services/product"
 )
 
 type Repository interface {
@@ -15,7 +16,8 @@ type Repository interface {
 }
 
 type service struct {
-	repo Repository
+	repo           Repository
+	productService product.Service
 }
 
 type Service interface {
@@ -23,9 +25,10 @@ type Service interface {
 	GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]models.RackWithProducts, error)
 }
 
-func NewService(repo Repository) Service {
+func NewService(repo Repository, productService product.Service) Service {
 	return &service{
-		repo: repo,
+		repo:           repo,
+		productService: productService,
 	}
 }
 
@@ -42,6 +45,7 @@ func (s *service) GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]mo
 		Id       int
 		Quantity int
 	}{}
+	productIds := []int{}
 	for _, o := range ordersHasProducts {
 		order, ok := productsIdsWithOrders[o.ProductId]
 		if !ok {
@@ -52,6 +56,7 @@ func (s *service) GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]mo
 				Id:       o.OrderId,
 				Quantity: o.ProductQuantity,
 			}}
+			productIds = append(productIds, o.ProductId)
 		} else {
 			order := append(order, struct {
 				Id       int
@@ -60,6 +65,11 @@ func (s *service) GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]mo
 			productsIdsWithOrders[o.ProductId] = order
 		}
 	}
-	fmt.Println(productsIdsWithOrders)
+	products, err := s.productService.GetProductsByIds(ctx, productIds)
+	if err != nil {
+		return []models.RackWithProducts{}, err
+	}
+	fmt.Println("products with orders", productsIdsWithOrders)
+	fmt.Println("products", products)
 	return []models.RackWithProducts{}, nil //s.repo.GetOrdersByIdSortByRacks(ctx, ids)
 }
