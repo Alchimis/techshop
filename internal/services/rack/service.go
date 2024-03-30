@@ -9,6 +9,7 @@ import (
 )
 
 type Repository interface {
+	GetRacksByProductId(ctx context.Context, productId int) ([]models.RackWithIsMain, error)
 	GetRacksByIds(ctx context.Context, ids []int) ([]models.Rack, error)
 	GetRacksHasProductsByProductIds(ctx context.Context, productIds []int) ([]models.RackHasProduct, error)
 	GetRackById(ctx context.Context, id int) (models.Rack, error)
@@ -55,18 +56,24 @@ func (s *service) GetMainRacksByProductIds(ctx context.Context, ids []int) ([]mo
 					Title    string
 					Products []int
 				}{
-					Title: newRack.Title,
+					Title:    newRack.Title,
+					Products: []int{r.ProductId},
 				}
 			} else {
 				mainRack.Products = append(mainRack.Products, r.ProductId)
 				mainRacks[r.RackId] = mainRack
 			}
+			_, ok = products[r.ProductId]
+			if !ok {
+				products[r.ProductId] = []models.Rack{}
+			}
+		} else {
+			newRack, err := s.repo.GetRackById(ctx, r.RackId)
+			if err != nil {
+				return []models.MainRack{}, err
+			}
+			products[r.ProductId] = append(products[r.ProductId], newRack)
 		}
-		newRack, err := s.repo.GetRackById(ctx, r.RackId)
-		if err != nil {
-			return []models.MainRack{}, err
-		}
-		products[r.ProductId] = append(products[r.ProductId], newRack)
 	}
 	var racks []models.MainRack
 	for k, v := range mainRacks {
@@ -84,9 +91,7 @@ func (s *service) GetMainRacksByProductIds(ctx context.Context, ids []int) ([]mo
 			if !ok {
 				return []models.MainRack{}, errors.New("additional rack not found")
 			}
-			for _, ad := range additionalRacks {
-				pp.AdditionalRacks = append(pp.AdditionalRacks, ad)
-			}
+			pp.AdditionalRacks = append(pp.AdditionalRacks, additionalRacks...)
 			p = append(p, pp)
 		}
 		racks = append(racks, models.MainRack{

@@ -10,6 +10,11 @@ type Rack struct {
 	Title string
 }
 
+type RackWithIsMain struct {
+	Id     int
+	IsMain bool
+}
+
 type RackHasProduct struct {
 	RackId    int
 	ProductId int

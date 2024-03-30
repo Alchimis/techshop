@@ -51,7 +51,7 @@ func main() {
 		return
 	}
 	startedAt := time.Now()
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 1; i++ {
 		getOrders(service)
 	}
 	fmt.Println(time.Since(startedAt))

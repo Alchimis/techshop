@@ -100,10 +100,6 @@ func (s *service) GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]mo
 			if !ok {
 				return []models.RackWithProducts{}, errs.New(fmt.Sprintf("order of product (id=%v) not found", productInRack.Id))
 			}
-			type T struct {
-				RackName *string `json:"rack_name"`
-				RackId   *int    `json:"rack_id"`
-			}
 			additionalRacks := utils.Map(productInRack.AdditionalRacks, func(r models.Rack) struct {
 				RackName *string `json:"rack_name"`
 				RackId   *int    `json:"rack_id"`

@@ -75,3 +75,25 @@ func (r rackRepository) GetRackById(ctx context.Context, id int) (models.Rack, e
 	}
 	return rack, nil
 }
+
+func (r rackRepository) GetRacksByProductId(ctx context.Context, productId int) ([]models.RackWithIsMain, error) {
+	query := `
+	SELECT rack_id, if_main FROM rack_has_product
+	WHERE product_id=$1
+	`
+	rows, err := r.conn.Query(ctx, query, productId)
+	rows.Close()
+	if err != nil {
+		return []models.RackWithIsMain{}, err
+	}
+	var racks []models.RackWithIsMain
+	for rows.Next() {
+		var rack models.RackWithIsMain
+		err := rows.Scan(&rack.Id, &rack.IsMain)
+		if err != nil {
+			return []models.RackWithIsMain{}, err
+		}
+		racks = append(racks, rack)
+	}
+	return racks, nil
+}
