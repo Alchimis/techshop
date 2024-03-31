@@ -10,6 +10,7 @@ type Repository interface {
 	GetProductById(ctx context.Context, id int) (models.SimpleProduct, error)
 	GetProductsByIds(ctx context.Context, ids []int) ([]models.SimpleProduct, error)
 	GetProductsByOrderId(ctx context.Context, orderId int) ([]models.OrderHasProduct, error)
+	GetProductsIdsByOrderId(ctx context.Context, orderId int) ([]int, error)
 }
 
 type Service interface {
@@ -30,6 +31,5 @@ func (s *service) GetProductsByIds(ctx context.Context, ids []int) ([]models.Sim
 }
 
 func (s *service) GetProductsByOrderId(ctx context.Context, orderId int) ([]models.OrderHasProduct, error) {
-
 	return s.repo.GetProductsByOrderId(ctx, orderId)
 }
