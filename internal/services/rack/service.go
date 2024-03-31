@@ -18,6 +18,7 @@ type Repository interface {
 type Service interface {
 	GetRacksByIds(ctx context.Context, ids []int) ([]models.Rack, error)
 	GetMainRacksByProductIds(ctx context.Context, ids []int) ([]models.MainRack, error)
+	GetRacksByProductId(ctx context.Context, productId int) ([]models.RackHasProduct, error)
 }
 
 type service struct {
@@ -28,6 +29,26 @@ func NewService(repo Repository) Service {
 	return &service{
 		repo: repo,
 	}
+}
+
+func (s *service) GetRacksByProductId(ctx context.Context, productId int) ([]models.RackHasProduct, error) {
+	racksHasProducts, err := s.repo.GetRacksByProductId(ctx, productId)
+	if err != nil {
+		return []models.RackHasProduct{}, err
+	}
+	var racks []models.RackHasProduct
+	for _, rackHasProducts := range racksHasProducts {
+		rack, err := s.repo.GetRackById(ctx, rackHasProducts.Id)
+		if err != nil {
+			return []models.RackHasProduct{}, err
+		}
+		racks = append(racks, models.RackHasProduct{
+			RackId:    rack.Id,
+			ProductId: rackHasProducts.Id,
+			IsMain:    rackHasProducts.IsMain,
+		})
+	}
+	return racks, nil
 }
 
 func (s *service) GetRacksByIds(ctx context.Context, ids []int) ([]models.Rack, error) {

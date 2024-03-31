@@ -135,5 +135,15 @@ func (s *service) GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]mo
 }
 
 func (s *service) GetOrdersByIdsSortedByMainRacks(ctx context.Context, ids []int) ([]models.RackWithProducts, error) {
+
+	for _, orderid := range ids {
+		productOrders, err := s.productService.GetProductsOrdersByOrderId(ctx, orderid)
+		if err != nil {
+			return []models.RackWithProducts{}, err
+		}
+		for _, productOrder := range productOrders {
+
+		}
+	}
 	return []models.RackWithProducts{}, errors.ErrNotImplemented
 }

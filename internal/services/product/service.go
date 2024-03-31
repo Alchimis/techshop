@@ -16,6 +16,7 @@ type Repository interface {
 type Service interface {
 	GetProductsByIds(ctx context.Context, ids []int) ([]models.SimpleProduct, error)
 	GetProductsByOrderId(ctx context.Context, orderId int) ([]models.OrderHasProduct, error)
+	GetProductsOrdersByOrderId(ctx context.Context, orderId int) ([]models.ProductOrder, error)
 }
 
 func NewService(repo Repository) Service {
@@ -32,4 +33,25 @@ func (s *service) GetProductsByIds(ctx context.Context, ids []int) ([]models.Sim
 
 func (s *service) GetProductsByOrderId(ctx context.Context, orderId int) ([]models.OrderHasProduct, error) {
 	return s.repo.GetProductsByOrderId(ctx, orderId)
+}
+
+func (s *service) GetProductsOrdersByOrderId(ctx context.Context, orderId int) ([]models.ProductOrder, error) {
+	orders, err := s.repo.GetProductsByOrderId(ctx, orderId)
+	if err != nil {
+		return []models.ProductOrder{}, err
+	}
+	var productOrders []models.ProductOrder
+	for _, order := range orders {
+		product, err := s.repo.GetProductById(ctx, order.ProductId)
+		if err != nil {
+			return []models.ProductOrder{}, err
+		}
+		productOrders = append(productOrders, models.ProductOrder{
+			Id:       order.ProductId,
+			OrderId:  order.OrderId,
+			Quantity: order.ProductQuantity,
+			Title:    product.Title,
+		})
+	}
+	return productOrders, nil
 }
