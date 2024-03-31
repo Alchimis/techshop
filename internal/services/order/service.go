@@ -134,6 +134,6 @@ func (s *service) GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]mo
 	return racksWithProducts, nil //s.repo.GetOrdersByIdSortByRacks(ctx, ids)
 }
 
-func (s *service) GetOrdersByIdsSortedByMainRacks(ctx context.Context, ind []int) ([]models.RackWithProducts, error) {
+func (s *service) GetOrdersByIdsSortedByMainRacks(ctx context.Context, ids []int) ([]models.RackWithProducts, error) {
 	return []models.RackWithProducts{}, errors.ErrNotImplemented
 }

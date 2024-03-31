@@ -3,7 +3,7 @@ package sql
 import (
 	"context"
 
-	domainErrors "github.com/Alchimis/techshop/internal/errors"
+	"github.com/Alchimis/techshop/internal/errors"
 	"github.com/Alchimis/techshop/internal/models"
 	"github.com/Alchimis/techshop/internal/services/product"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -39,6 +39,27 @@ func (r productRepository) GetProductsByIds(ctx context.Context, ids []int) ([]m
 	return products, nil
 }
 
-func (r productRepository) GetProductsByOrderId(ctx context.Context, orderId int) ([]models.SimpleProduct, error) {
-	return []models.SimpleProduct{}, domainErrors.ErrNotImplemented
+func (r productRepository) GetProductsByOrderId(ctx context.Context, orderId int) ([]models.OrderHasProduct, error) {
+	query := `
+	SELECT product_id, quantity FROM order_has_product
+	WHERE order_id=$1;
+	`
+	rows, err := r.conn.Query(ctx, query, orderId)
+	defer rows.Close()
+	if err != nil {
+		return []models.OrderHasProduct{}, err
+	}
+	var products []models.OrderHasProduct
+	for rows.Next() {
+		var product models.OrderHasProduct
+		if err := rows.Scan(&product.ProductId, &product.ProductQuantity); err != nil {
+			return []models.OrderHasProduct{}, err
+		}
+		products = append(products, product)
+	}
+	return products, nil
+}
+
+func (r productRepository) GetProductById(ctx context.Context, id int) (models.SimpleProduct, error) {
+	return models.SimpleProduct{}, errors.ErrNotImplemented
 }
