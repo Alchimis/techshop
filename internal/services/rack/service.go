@@ -3,9 +3,9 @@ package rack
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/Alchimis/techshop/internal/models"
+	"github.com/Alchimis/techshop/internal/utils"
 )
 
 type Repository interface {
@@ -19,6 +19,8 @@ type Service interface {
 	GetRacksByIds(ctx context.Context, ids []int) ([]models.Rack, error)
 	GetMainRacksByProductIds(ctx context.Context, ids []int) ([]models.MainRack, error)
 	GetRacksByProductId(ctx context.Context, productId int) ([]models.RackHasProduct, error)
+	GetRacksWithProductByProductId(ctx context.Context, productId int) (models.ProductWithMainRackAndAdditionalRacks, error)
+	GetRacksHasProductByProductId(ctx context.Context, productId int) ([]models.RackWithIsMain, error)
 }
 
 type service struct {
@@ -31,16 +33,50 @@ func NewService(repo Repository) Service {
 	}
 }
 
+func (s *service) GetRacksWithProductByProductId(ctx context.Context, productId int) (models.ProductWithMainRackAndAdditionalRacks, error) {
+	racks, err := s.GetRacksByProductId(ctx, productId)
+	if err != nil {
+		return models.ProductWithMainRackAndAdditionalRacks{}, nil
+	}
+	var product models.ProductWithMainRackAndAdditionalRacks
+	for _, rack := range racks {
+		r, err := s.repo.GetRackById(ctx, rack.RackId)
+		if err != nil {
+			return models.ProductWithMainRackAndAdditionalRacks{}, err
+		}
+		if rack.IsMain {
+			product.MainRack = models.Rack{
+				Id:    rack.RackId,
+				Title: r.Title,
+			}
+		} else {
+			product.AdditionalRacks = append(product.AdditionalRacks, models.Rack{
+				Id:    rack.RackId,
+				Title: r.Title,
+			})
+		}
+	}
+	return product, nil
+}
+
 func (s *service) GetRacksByProductId(ctx context.Context, productId int) ([]models.RackHasProduct, error) {
+	rm, err := utils.GetRacks(ctx)
+	if err != nil {
+		return []models.RackHasProduct{}, err
+	}
 	racksHasProducts, err := s.repo.GetRacksByProductId(ctx, productId)
 	if err != nil {
 		return []models.RackHasProduct{}, err
 	}
 	var racks []models.RackHasProduct
 	for _, rackHasProducts := range racksHasProducts {
-		rack, err := s.repo.GetRackById(ctx, rackHasProducts.Id)
-		if err != nil {
-			return []models.RackHasProduct{}, err
+		rack, ok := rm[rackHasProducts.Id]
+		if !ok {
+			rack, err := s.repo.GetRackById(ctx, rackHasProducts.Id)
+			if err != nil {
+				return []models.RackHasProduct{}, err
+			}
+			rm[rackHasProducts.Id] = rack
 		}
 		racks = append(racks, models.RackHasProduct{
 			RackId:    rack.Id,
@@ -121,6 +157,9 @@ func (s *service) GetMainRacksByProductIds(ctx context.Context, ids []int) ([]mo
 			Products: p,
 		})
 	}
-	fmt.Println("racksHasProducts ", racksHasProducts)
 	return racks, nil
+}
+
+func (s *service) GetRacksHasProductByProductId(ctx context.Context, productId int) ([]models.RackWithIsMain, error) {
+	return s.repo.GetRacksByProductId(ctx, productId)
 }

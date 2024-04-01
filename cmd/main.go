@@ -28,20 +28,39 @@ func handleError(err error) {
 	fmt.Println(err)
 }
 
-func getOrders(service order.Service) {
+func getOrdersAllData(service order.Service) {
 	orderIds, err := stringsToInts(os.Args)
 	if err != nil {
 		handleError(err)
 		return
 	}
-	orders, err := service.GetOrdersByIdSortByRacks(context.Background(), orderIds)
+	_, err = service.GetOrdersByIdSortByRacks(context.Background(), orderIds)
+	//_, err = service.GetOrdersByIdsSortedByMainRacks(context.Background(), orderIds)
+
 	if err != nil {
 		handleError(err)
 		return
 	}
-	for _, o := range orders {
-		fmt.Println(o)
+	//for _, o := range orders {
+	//	fmt.Println(o)
+	//}
+}
+
+func getOrdersPartialData(service order.Service) {
+	orderIds, err := stringsToInts(os.Args)
+	if err != nil {
+		handleError(err)
+		return
 	}
+	_, err = service.GetOrdersByIdsSortedByMainRacks(context.Background(), orderIds)
+
+	if err != nil {
+		handleError(err)
+		return
+	}
+	//for _, o := range orders {
+	//	fmt.Println(o)
+	//}
 }
 
 func main() {
@@ -50,9 +69,15 @@ func main() {
 		handleError(err)
 		return
 	}
+	times := 100
 	startedAt := time.Now()
-	for i := 0; i < 1; i++ {
-		getOrders(service)
+	for i := 0; i < times; i++ {
+		getOrdersAllData(service)
 	}
-	fmt.Println(time.Since(startedAt))
+	fmt.Println("All data", time.Since(startedAt))
+	startedAt = time.Now()
+	for i := 0; i < times; i++ {
+		getOrdersPartialData(service)
+	}
+	fmt.Println("Partial data", time.Since(startedAt))
 }

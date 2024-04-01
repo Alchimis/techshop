@@ -86,9 +86,6 @@ func (s *service) GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]mo
 	if err != nil {
 		return []models.RackWithProducts{}, err
 	}
-	fmt.Println("racks ", racks)
-	fmt.Println("products with orders ", productsIdsWithOrders)
-	fmt.Println("products", products)
 	var racksWithProducts []models.RackWithProducts
 	for _, rack := range racks {
 		var p []models.ProductIn
@@ -134,16 +131,71 @@ func (s *service) GetOrdersByIdSortByRacks(ctx context.Context, ids []int) ([]mo
 	return racksWithProducts, nil //s.repo.GetOrdersByIdSortByRacks(ctx, ids)
 }
 
-func (s *service) GetOrdersByIdsSortedByMainRacks(ctx context.Context, ids []int) ([]models.RackWithProducts, error) {
+var mapAdditionalRacks = func(r models.Rack) struct {
+	RackName *string `json:"rack_name"`
+	RackId   *int    `json:"rack_id"`
+} {
+	return struct {
+		RackName *string `json:"rack_name"`
+		RackId   *int    `json:"rack_id"`
+	}{
+		RackName: &r.Title,
+		RackId:   &r.Id,
+	}
+}
 
-	for _, orderid := range ids {
-		productOrders, err := s.productService.GetProductsOrdersByOrderId(ctx, orderid)
+func (s *service) GetOrdersByIdsSortedByMainRacks(ctx context.Context, ids []int) ([]models.RackWithProducts, error) {
+	mainRacks := make(map[int]models.RackWithProducts)
+	ctx = utils.SetupContext(ctx)
+	for _, orderId := range ids {
+		//productOrders, err := s.productService.GetProductsOrdersByOrderId(ctx, orderId)
+		productsQuantity, err := s.productService.GetProductIdAndQuantityByOrderId(ctx, orderId)
 		if err != nil {
 			return []models.RackWithProducts{}, err
 		}
-		for _, productOrder := range productOrders {
+		for _, productOrder := range productsQuantity {
+			product, err := s.productService.GetProductById(ctx, productOrder.Id)
+			if err != nil {
+				return []models.RackWithProducts{}, err
+			}
+			//racksOfProduct, err := s.rackService.GetRacksHasProductByProductId(ctx, productOrder.Id)
+			if err != nil {
+				return []models.RackWithProducts{}, err
+			}
+			racks, err := s.rackService.GetRacksWithProductByProductId(ctx, productOrder.Id)
+			if err != nil {
+				return []models.RackWithProducts{}, err
+			}
 
+			if mainRack, ok := mainRacks[racks.MainRack.Id]; !ok {
+				mainRacks[racks.MainRack.Id] = models.RackWithProducts{
+					Id:   racks.MainRack.Id,
+					Name: racks.MainRack.Title,
+					Products: []models.ProductIn{
+						{
+							Id:              productOrder.Id,
+							OrderId:         orderId,
+							Quantity:        productOrder.Quantity,
+							Title:           product.Title,
+							AdditionalRacks: utils.Map(racks.AdditionalRacks, mapAdditionalRacks),
+						},
+					},
+				}
+			} else {
+				mainRack.Products = append(mainRack.Products, models.ProductIn{
+					Id:              productOrder.Id,
+					OrderId:         orderId,
+					Quantity:        productOrder.Quantity,
+					Title:           product.Title,
+					AdditionalRacks: utils.Map(racks.AdditionalRacks, mapAdditionalRacks),
+				})
+				mainRacks[racks.MainRack.Id] = mainRack
+			}
 		}
 	}
-	return []models.RackWithProducts{}, errors.ErrNotImplemented
+	var r []models.RackWithProducts
+	for _, v := range mainRacks {
+		r = append(r, v)
+	}
+	return r, nil
 }

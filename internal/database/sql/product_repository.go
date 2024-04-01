@@ -98,3 +98,24 @@ func (r productRepository) GetProductsIdsByOrderId(ctx context.Context, orderId 
 	}
 	return ids, nil
 }
+
+func (r productRepository) GetProductIdAndQuantityByOrderId(ctx context.Context, orderId int) ([]models.ProductIdAndQuantity, error) {
+	query := `
+	SELECT product_id, quantity FROM order_has_product
+	WHERE order_id=$1;
+	`
+	rows, err := r.conn.Query(ctx, query, orderId)
+	defer rows.Close()
+	if err != nil {
+		return []models.ProductIdAndQuantity{}, err
+	}
+	var products []models.ProductIdAndQuantity
+	for rows.Next() {
+		var product models.ProductIdAndQuantity
+		if err := rows.Scan(&product.Id, &product.Quantity); err != nil {
+			return []models.ProductIdAndQuantity{}, err
+		}
+		products = append(products, product)
+	}
+	return products, nil
+}

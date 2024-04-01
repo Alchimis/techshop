@@ -5,6 +5,11 @@ import (
 	"strings"
 )
 
+type RacksOfProduct struct {
+	MainRackId      int
+	AdditionalRacks []int
+}
+
 type Rack struct {
 	Id    int
 	Title string

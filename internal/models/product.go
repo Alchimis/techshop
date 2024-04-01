@@ -19,3 +19,13 @@ type ProductOrder struct {
 	Quantity int    `json:"order_quantity"`
 	Title    string `json:"product_title"`
 }
+
+type ProductWithMainRackAndAdditionalRacks struct {
+	MainRack        Rack
+	AdditionalRacks []Rack
+}
+
+type ProductIdAndQuantity struct {
+	Id       int
+	Quantity int
+}
