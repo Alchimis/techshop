@@ -29,3 +29,13 @@ type ProductIdAndQuantity struct {
 	Id       int
 	Quantity int
 }
+
+type OrderIdAndQuantity struct {
+	Id       int
+	Quantity int
+}
+
+type ProductIdAndOrders struct {
+	ProductId int
+	Orders    []OrderIdAndQuantity
+}

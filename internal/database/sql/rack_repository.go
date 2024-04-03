@@ -78,11 +78,11 @@ func (r rackRepository) GetRackById(ctx context.Context, id int) (models.Rack, e
 
 func (r rackRepository) GetRacksByProductId(ctx context.Context, productId int) ([]models.RackWithIsMain, error) {
 	query := `
-	SELECT rack_id, if_main FROM rack_has_product
+	SELECT rack_id, is_main FROM rack_has_product
 	WHERE product_id=$1
 	`
 	rows, err := r.conn.Query(ctx, query, productId)
-	rows.Close()
+	defer rows.Close()
 	if err != nil {
 		return []models.RackWithIsMain{}, err
 	}
@@ -100,11 +100,11 @@ func (r rackRepository) GetRacksByProductId(ctx context.Context, productId int) 
 
 func (r rackRepository) GetAllRackOfProduct(ctx context.Context, productId int) (models.RacksOfProduct, error) {
 	query := `
-	SELECT rack_id, if_main FROM rack_has_product
+	SELECT rack_id, is_main FROM rack_has_product
 	WHERE product_id=$1
 	`
 	rows, err := r.conn.Query(ctx, query, productId)
-	rows.Close()
+	defer rows.Close()
 	if err != nil {
 		return models.RacksOfProduct{}, err
 	}
@@ -125,4 +125,118 @@ func (r rackRepository) GetAllRackOfProduct(ctx context.Context, productId int) 
 		}
 	}
 	return racks, nil
+}
+
+func (r rackRepository) GetRacksIdsByProductsIds(ctx context.Context, productsIds []int) ([]int, error) {
+	query := `
+	SELECT rack_id FROM rack_has_product
+	WHERE product_id = any ($1);
+	`
+	rows, err := r.conn.Query(ctx, query, productsIds)
+	defer rows.Close()
+	if err != nil {
+		return []int{}, err
+	}
+	var ids []int
+	for rows.Next() {
+		var id int
+		if err = rows.Scan(&id); err != nil {
+			return []int{}, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
+}
+
+func (r rackRepository) GetMainRacksIdsByProductsIds(ctx context.Context, productsIds []int) ([]int, error) {
+	query := `
+	SELECT rack_id FROM rack_has_product
+	WHERE is_main=true AND product_id= any ($1);
+	`
+	rows, err := r.conn.Query(ctx, query, productsIds)
+	defer rows.Close()
+	if err != nil {
+		return []int{}, err
+	}
+	var ids []int
+	for rows.Next() {
+		var id int
+		if err := rows.Scan(&id); err != nil {
+			return []int{}, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
+}
+
+func (r rackRepository) GetMainRacksCountByProductsIds(ctx context.Context, productsIds []int) (int, error) {
+	query := `
+	SELECT COUNT(*) FROM rack_has_product
+	WHERE product_id = any ($1) AND is_main=true;
+	`
+	var id int
+	err := r.conn.QueryRow(ctx, query, productsIds).Scan(&id)
+	return id, err
+}
+
+func (r rackRepository) GetRacksHasProductsByProductsIdsSplitByIsMain(ctx context.Context, productsIds []int) ([]models.RackIdProductsIds, []models.RackIdProductsIds, error) {
+	query := `
+	SELECT rack_id, product_id, is_main FROM rack_has_product
+	WHERE product_id = any($1)
+	ORDER BY rack_id;
+	`
+	rows, err := r.conn.Query(ctx, query, productsIds)
+	defer rows.Close()
+	if err != nil {
+		return []models.RackIdProductsIds{}, []models.RackIdProductsIds{}, err
+	}
+	var (
+		mainRacks       []models.RackIdProductsIds
+		additionalRacks []models.RackIdProductsIds
+		actualId        int   = -1
+		additionalIds   []int = []int{}
+		mainIds         []int = []int{}
+	)
+	for rows.Next() {
+		var rack models.ProductIdRackId
+		var isMain bool
+		if err := rows.Scan(&rack.RackId, &rack.ProductId, &isMain); err != nil {
+			return []models.RackIdProductsIds{}, []models.RackIdProductsIds{}, err
+		}
+		if actualId != rack.RackId {
+			if len(mainIds) != 0 {
+				mainRacks = append(mainRacks, models.RackIdProductsIds{
+					RackId:      actualId,
+					ProductsIds: mainIds,
+				})
+				mainIds = []int{}
+			}
+			if len(additionalIds) != 0 {
+				additionalRacks = append(additionalRacks, models.RackIdProductsIds{
+					RackId:      actualId,
+					ProductsIds: additionalIds,
+				})
+				additionalIds = []int{}
+			}
+			actualId = rack.RackId
+		}
+		if isMain {
+			mainIds = append(mainIds, rack.ProductId)
+		} else {
+			additionalIds = append(additionalIds, rack.ProductId)
+		}
+	}
+	if len(mainIds) != 0 {
+		mainRacks = append(mainRacks, models.RackIdProductsIds{
+			RackId:      actualId,
+			ProductsIds: mainIds,
+		})
+	}
+	if len(additionalIds) != 0 {
+		additionalRacks = append(additionalRacks, models.RackIdProductsIds{
+			RackId:      actualId,
+			ProductsIds: additionalIds,
+		})
+	}
+	return mainRacks, additionalRacks, nil
 }

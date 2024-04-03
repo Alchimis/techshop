@@ -3,6 +3,7 @@ package sql
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	errs "errors"
 
@@ -104,6 +105,73 @@ func (r orderRepository) GetOrderHasProductByIds(ctx context.Context, ids []int)
 			return []models.OrderHasProduct{}, err
 		}
 		orders = append(orders, order)
+	}
+	return orders, nil
+}
+
+func (r orderRepository) HelloWorld(ctx context.Context) error {
+	query :=
+		`
+	SELECT title FROM product
+	WHERE id=1;
+	SELECT rack_id FROM rack_has_product
+	WHERE product_id=1;
+	`
+	rows, err := r.conn.Query(ctx, query)
+	defer rows.Close()
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var i interface{}
+		err := rows.Scan(&i)
+		if err != nil {
+			return err
+		}
+		fmt.Println(i)
+	}
+	return nil
+}
+
+func (r orderRepository) GetOrderHasProductByOrdersIdsGroupByProduct(ctx context.Context, ids []int) ([]models.ProductIdAndOrders, error) {
+	query := `
+	SELECT order_id, product_id, quantity FROM order_has_product
+	WHERE order_id = any ($1)
+	ORDER BY product_id;
+	`
+	rows, err := r.conn.Query(ctx, query, ids)
+	defer rows.Close()
+	if err != nil {
+		return []models.ProductIdAndOrders{}, err
+	}
+	orders := []models.ProductIdAndOrders{}
+	actualId := -1
+	orderAndId := []models.OrderIdAndQuantity{}
+	for rows.Next() {
+		var order models.OrderHasProduct
+		if err := rows.Scan(&order.OrderId, &order.ProductId, &order.ProductQuantity); err != nil {
+			return []models.ProductIdAndOrders{}, err
+		}
+		if actualId != order.ProductId {
+			if len(orderAndId) != 0 {
+				orders = append(orders, models.ProductIdAndOrders{
+					ProductId: actualId,
+					Orders:    orderAndId,
+				})
+				orderAndId = []models.OrderIdAndQuantity{}
+			}
+			actualId = order.ProductId
+		}
+		orderAndId = append(orderAndId, models.OrderIdAndQuantity{
+			Id:       order.OrderId,
+			Quantity: order.ProductQuantity,
+		})
+	}
+	if len(orderAndId) != 0 {
+		orders = append(orders, models.ProductIdAndOrders{
+			ProductId: actualId,
+			Orders:    orderAndId,
+		})
 	}
 	return orders, nil
 }

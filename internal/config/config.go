@@ -33,7 +33,7 @@ func getenvInt(val string, def int) int {
 func NewConfig() Config {
 	return Config{
 		DBPassword: getenv("DB_PASSWORD", "password"),
-		DBName:     getenv("DB_NAME", "postgres"),
+		DBName:     "techshop", //getenv("DB_NAME", "techshop"),
 		DBHost:     getenv("DB_HOST", "localhost"),
 		DBUser:     getenv("DB_USER", "postgres"),
 		DBPort:     getenvInt("DB_PORT", 5432),

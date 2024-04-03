@@ -5,14 +5,24 @@ import (
 	"strings"
 )
 
+type ProductIdRackId struct {
+	ProductId int
+	RackId    int
+}
+
+type RackIdProductsIds struct {
+	RackId      int
+	ProductsIds []int
+}
+
 type RacksOfProduct struct {
 	MainRackId      int
 	AdditionalRacks []int
 }
 
 type Rack struct {
-	Id    int
-	Title string
+	Id    int    `json:"rack_name"`
+	Title string `json:"rack_id"`
 }
 
 type RackWithIsMain struct {
@@ -40,10 +50,7 @@ type ProductIn struct {
 	OrderId         int    `json:"order_id"`
 	Quantity        int    `json:"order_quantity"`
 	Title           string `json:"product_title"`
-	AdditionalRacks []struct {
-		RackName *string `json:"rack_name"`
-		RackId   *int    `json:"rack_id"`
-	} `json:"additional_racks"`
+	AdditionalRacks []Rack `json:"additional_racks"`
 }
 
 type RackWithProducts struct {
@@ -69,8 +76,8 @@ func (r RackWithProducts) String() string {
 		builder.WriteString(fmt.Sprintf("заказ %d, %d шт\n", p.OrderId, p.Quantity))
 		var racksNames []string
 		for _, m := range p.AdditionalRacks {
-			if m.RackName != nil {
-				racksNames = append(racksNames, *m.RackName)
+			if m.Title != "" {
+				racksNames = append(racksNames, m.Title)
 			}
 		}
 		if len(racksNames) > 0 {
